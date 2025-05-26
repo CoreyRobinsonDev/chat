@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/coreyrobinsondev/search/ai"
 	"github.com/coreyrobinsondev/search/settings"
 	u "github.com/coreyrobinsondev/utils"
 )
@@ -93,7 +94,14 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			fmt.Println(m.Textarea.Value())
 			return m, tea.Quit
 		case tea.KeyEnter:
-			m.Messages = append(m.Messages, m.SenderStyle.Render("You: ")+m.Textarea.Value())
+			go func() {
+				m.Messages = append(m.Messages, m.SenderStyle.Render("You: ")+m.Textarea.Value())
+				m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
+				m.Textarea.Reset()
+				m.Viewport.GotoBottom()
+			}()
+
+			m.Messages = append(m.Messages, lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Render("Gemini: ")+ai.RunGemini(m.Textarea.Value()))
 			m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
 			m.Textarea.Reset()
 			m.Viewport.GotoBottom()
