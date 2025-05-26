@@ -1,4 +1,4 @@
-package main
+package ui
 
 import (
 	"fmt"
@@ -8,7 +8,31 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/coreyrobinsondev/search/settings"
+	u "github.com/coreyrobinsondev/utils"
 )
+
+func RunList() {
+	items := []list.Item{
+		item(string("gemini-2.5-flash-preview-05-20")),
+		item(string("gemini-2.0-flash")),
+		item(string("gemini-2.0-flash-lite")),
+	}
+
+	const defaultWidth = 20
+
+	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
+	l.Title = fmt.Sprintf("Active AI model: %s\nSwitching to...", settings.ConfigFile.Model)
+	l.SetShowStatusBar(false)
+	l.SetFilteringEnabled(false)
+	l.Styles.Title = titleStyle
+	l.Styles.PaginationStyle = paginationStyle
+	l.Styles.HelpStyle = helpStyle
+
+	m := listModel{list: l}
+
+	u.Unwrap(tea.NewProgram(m).Run())
+}
 
 const listHeight = 14
 
@@ -48,17 +72,17 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	fmt.Fprint(w, fn(str))
 }
 
-type model struct {
+type listModel struct {
 	list     list.Model
 	choice   string
 	quitting bool
 }
 
-func (m model) Init() tea.Cmd {
+func (m listModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetWidth(msg.Width)
@@ -84,14 +108,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m model) View() string {
+func (m listModel) View() string {
 	if m.choice != "" {
-		config.Set("model", m.choice)
+		settings.ConfigFile.Set("model", m.choice)
 
-		return quitTextStyle.Render(fmt.Sprintf("Setting AI model to %s...", config.Model))
+		return quitTextStyle.Render(fmt.Sprintf("Setting AI model to %s...", settings.ConfigFile.Model))
 	}
 	if m.quitting {
-		return quitTextStyle.Render(fmt.Sprintf("Using %s...", config.Model))
+		return quitTextStyle.Render(fmt.Sprintf("Using %s...", settings.ConfigFile.Model))
 	}
 	return "\n" + m.list.View()
 }

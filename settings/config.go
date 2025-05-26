@@ -1,4 +1,4 @@
-package main
+package settings
 
 import (
 	"encoding/json"
@@ -10,6 +10,8 @@ import (
 )
 
 
+
+var ConfigFile Config
 
 type Config struct {
 	Model string `json:"model"`
@@ -27,7 +29,7 @@ func (self *Config) Create() {
 
 	err := os.Mkdir(configPath, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
-		logger.Fatal(err)
+		Logger.Fatal(err)
 	}
 	configFile := u.Unwrap(os.Create(configPath + "/search.conf"))
 	defer configFile.Close()
@@ -55,6 +57,7 @@ func (self *Config) Init() {
 		self.Create()
 	}
 }
+
 
 func (self *Config) Set(key string, val any) {
 	switch key {
