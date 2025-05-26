@@ -6,6 +6,7 @@ import (
 	"github.com/coreyrobinsondev/search/settings"
 	"github.com/coreyrobinsondev/search/ui"
 	u "github.com/coreyrobinsondev/utils"
+	"google.golang.org/genai"
 )
 
 
@@ -14,6 +15,8 @@ func main() {
 		settings.Logger.Fatal(err)
 	})	
 	settings.ConfigFile.Init()
+	settings.ConfigFile.GeminiChatHistory = []*genai.Content{}
+	settings.ConfigFile.Write()
 
 	args := os.Args[1:]
 

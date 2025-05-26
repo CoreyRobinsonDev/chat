@@ -2,11 +2,11 @@ package settings
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 
 	u "github.com/coreyrobinsondev/utils"
 	"github.com/joho/godotenv"
+	"google.golang.org/genai"
 )
 
 
@@ -16,6 +16,7 @@ var ConfigFile Config
 type Config struct {
 	Model string `json:"model"`
 	GeminiApiKey string `json:"geminiApiKey"`
+	GeminiChatHistory []*genai.Content `json:"geminiChatHistory"`
 }
 
 func (self *Config) Create() {
@@ -59,14 +60,7 @@ func (self *Config) Init() {
 }
 
 
-func (self *Config) Set(key string, val any) {
-	switch key {
-	case "model":
-		self.Model = fmt.Sprintf("%v", val)
-	case "geminiApiKey":
-		self.GeminiApiKey = fmt.Sprintf("%v", val)
-	}
-
+func (self Config) Write() {
 	bytes := u.Unwrap(json.Marshal(self))
 	homeDir := u.Unwrap(os.UserHomeDir())
 	configPath := homeDir + "/.config/search"

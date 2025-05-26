@@ -22,7 +22,10 @@ func RunList() {
 	const defaultWidth = 20
 
 	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = fmt.Sprintf("Active AI model: %s\nSwitching to...", settings.ConfigFile.Model)
+	l.Title = lipgloss. 
+		NewStyle(). 
+		Foreground(lipgloss.Color("240")). 
+		Render(fmt.Sprintf("Active model: %s\nSwitching to...", settings.ConfigFile.Model))
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = titleStyle
@@ -110,12 +113,12 @@ func (m listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m listModel) View() string {
 	if m.choice != "" {
-		settings.ConfigFile.Set("model", m.choice)
-
-		return quitTextStyle.Render(fmt.Sprintf("Setting AI model to %s...", settings.ConfigFile.Model))
+		settings.ConfigFile.Model = m.choice
+		settings.ConfigFile.Write()
+		return quitTextStyle.Render(fmt.Sprintf("Setting AI model to %s", settings.ConfigFile.Model))
 	}
 	if m.quitting {
-		return quitTextStyle.Render(fmt.Sprintf("Using %s...", settings.ConfigFile.Model))
+		return quitTextStyle.Render(fmt.Sprintf("Using %s", settings.ConfigFile.Model))
 	}
 	return "\n" + m.list.View()
 }

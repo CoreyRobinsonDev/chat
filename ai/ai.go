@@ -27,10 +27,16 @@ func RunGemini(input string) string {
 			),
 	}
 
-	history := []*genai.Content{}
 
-	chat := u.Unwrap(client.Chats.Create(ctx, settings.ConfigFile.Model, aiConfig, history))
+	chat := u.Unwrap(client.Chats.Create(ctx, settings.ConfigFile.Model, aiConfig, settings.ConfigFile.GeminiChatHistory))
 	result := u.Unwrap(chat.SendMessage(ctx, genai.Part{Text: input}))
+
+	settings.ConfigFile.GeminiChatHistory = append(
+		settings.ConfigFile.GeminiChatHistory,
+		genai.NewContentFromText(input, genai.RoleUser),
+		result.Candidates[0].Content,
+	)
+	settings.ConfigFile.Write()
 
 	return u.Unwrap(glamour.Render(result.Candidates[0].Content.Parts[0].Text, "dark"))
 }
