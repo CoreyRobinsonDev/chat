@@ -3,6 +3,7 @@ package ai
 import (
 	"context"
 
+	"github.com/charmbracelet/glamour"
 	"github.com/coreyrobinsondev/search/settings"
 	u "github.com/coreyrobinsondev/utils"
 	"google.golang.org/genai"
@@ -31,7 +32,5 @@ func RunGemini(input string) string {
 	chat := u.Unwrap(client.Chats.Create(ctx, settings.ConfigFile.Model, aiConfig, history))
 	result := u.Unwrap(chat.SendMessage(ctx, genai.Part{Text: input}))
 
-	if len(result.Candidates) > 0 {
-		return result.Candidates[0].Content.Parts[0].Text
-	} else { return "" } 
+	return u.Unwrap(glamour.Render(result.Candidates[0].Content.Parts[0].Text, "dark"))
 }

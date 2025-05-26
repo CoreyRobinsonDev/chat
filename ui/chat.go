@@ -94,14 +94,8 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			fmt.Println(m.Textarea.Value())
 			return m, tea.Quit
 		case tea.KeyEnter:
-			go func() {
-				m.Messages = append(m.Messages, m.SenderStyle.Render("You: ")+m.Textarea.Value())
-				m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
-				m.Textarea.Reset()
-				m.Viewport.GotoBottom()
-			}()
-
-			m.Messages = append(m.Messages, lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Render("Gemini: ")+ai.RunGemini(m.Textarea.Value()))
+			m.Messages = append(m.Messages, m.SenderStyle.Render("You: ")+m.Textarea.Value())
+			m.Messages = append(m.Messages, lipgloss.NewStyle().Foreground(lipgloss.Color("38")).Render("Gemini: ")+ai.RunGemini(m.Textarea.Value()))
 			m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
 			m.Textarea.Reset()
 			m.Viewport.GotoBottom()
