@@ -2,17 +2,25 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	u "github.com/coreyrobinsondev/utils"
+	"github.com/joho/godotenv"
 )
+
+
 
 type Config struct {
 	Model string `json:"model"`
+	GeminiApiKey string `json:"geminiApiKey"`
 }
 
 func (self *Config) Create() {
+	u.Expect(godotenv.Load())
 	self.Model = "gemini-2.5-flash-preview-05-20" 
+	self.GeminiApiKey = os.Getenv("GEMINI_API_KEY")
+
 	bytes := u.Unwrap(json.Marshal(self))
 	homeDir := u.Unwrap(os.UserHomeDir())
 	configPath := homeDir + "/.config/search"
@@ -48,8 +56,14 @@ func (self *Config) Init() {
 	}
 }
 
-func (self *Config) SetModel(model string) {
-	self.Model = model
+func (self *Config) Set(key string, val any) {
+	switch key {
+	case "model":
+		self.Model = fmt.Sprintf("%v", val)
+	case "geminiApiKey":
+		self.GeminiApiKey = fmt.Sprintf("%v", val)
+	}
+
 	bytes := u.Unwrap(json.Marshal(self))
 	homeDir := u.Unwrap(os.UserHomeDir())
 	configPath := homeDir + "/.config/search"
@@ -57,3 +71,4 @@ func (self *Config) SetModel(model string) {
 	defer configFile.Close()
 	u.Unwrap(configFile.Write(bytes))
 }
+

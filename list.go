@@ -86,7 +86,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	if m.choice != "" {
-		config.SetModel(m.choice)
+		config.Set("model", m.choice)
 
 		return quitTextStyle.Render(fmt.Sprintf("Setting AI model to %s...", config.Model))
 	}

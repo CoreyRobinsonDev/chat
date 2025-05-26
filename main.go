@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"time"
@@ -10,7 +9,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/log"
 	u "github.com/coreyrobinsondev/utils"
-	"google.golang.org/genai"
 )
 
 var logger = log.NewWithOptions(os.Stderr, log.Options{
@@ -61,29 +59,7 @@ func main() {
 			os.Exit(0)
 		}
 	}
-
-	ctx := context.Background()
-	client := u.Unwrap(genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey: os.Getenv("GEMINI_API_KEY"),
-		Backend: genai.BackendGeminiAPI,
-	}))
-
-	AiConfig := &genai.GenerateContentConfig{
-		SystemInstruction: genai.NewContentFromText(
-			"You're a senior software engineer giving short and concise answers. Include code examples", 
-			genai.RoleUser,
-			),
-	}
-
-	history := []*genai.Content{}
-
-	chat := u.Unwrap(client.Chats.Create(ctx, config.Model, AiConfig, history))
-	stream := chat.SendMessageStream(ctx, genai.Part{Text: "How to make a while loop in Go"})
-
-	for chunk := range stream {
-		part := chunk.Candidates[0].Content.Parts[0]
-		fmt.Print(part.Text)
-	}
+	RunGemini()
 }
 
 
