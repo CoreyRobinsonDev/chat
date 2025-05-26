@@ -6,31 +6,61 @@ import (
 	"os"
 	"time"
 
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/log"
 	u "github.com/coreyrobinsondev/utils"
-	"github.com/joho/godotenv"
 	"google.golang.org/genai"
 )
 
 var logger = log.NewWithOptions(os.Stderr, log.Options{
-	ReportCaller: true,
 	ReportTimestamp: true,
 	TimeFormat: time.TimeOnly,
 })
 
 type Model string
 const (
-	GEMINI25FLASHPREVIEW0520 Model = "gemini-2.5-flash-preview-05-20"
-	GEMINI20FLASH Model = "gemini-2.0-flash"
-	GEMINI20FLASHLITE Model = "gemini-2.0-flash-lite"
+	GEMINI_25_FLASH_PREVIEW_0520 Model = "gemini-2.5-flash-preview-05-20"
+	GEMINI_20_FLASH Model = "gemini-2.0-flash"
+	GEMINI_20_FLASH_LITE Model = "gemini-2.0-flash-lite"
 )
+
+var config Config
 
 
 func main() {
 	u.SetErrorHandler(func (err error) {
 		logger.Fatal(err)
 	})	
-	u.Expect(godotenv.Load())
+	config.Init()
+
+	args := os.Args[1:]
+
+	if len(args) != 0 {
+		switch args[0] {
+		case "config":
+			items := []list.Item{
+				item(string(GEMINI_25_FLASH_PREVIEW_0520)),
+				item(string(GEMINI_20_FLASH)),
+				item(string(GEMINI_20_FLASH_LITE)),
+			}
+
+			const defaultWidth = 20
+
+			l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
+			l.Title = fmt.Sprintf("Active AI model: %s\nSwitching to...", config.Model)
+			l.SetShowStatusBar(false)
+			l.SetFilteringEnabled(false)
+			l.Styles.Title = titleStyle
+			l.Styles.PaginationStyle = paginationStyle
+			l.Styles.HelpStyle = helpStyle
+
+			m := model{list: l}
+
+			u.Unwrap(tea.NewProgram(m).Run())
+			os.Exit(0)
+		}
+	}
 
 	ctx := context.Background()
 	client := u.Unwrap(genai.NewClient(ctx, &genai.ClientConfig{
@@ -38,16 +68,16 @@ func main() {
 		Backend: genai.BackendGeminiAPI,
 	}))
 
-	config := &genai.GenerateContentConfig{
+	AiConfig := &genai.GenerateContentConfig{
 		SystemInstruction: genai.NewContentFromText(
 			"You're a senior software engineer giving short and concise answers. Include code examples", 
 			genai.RoleUser,
-		),
+			),
 	}
 
 	history := []*genai.Content{}
 
-	chat := u.Unwrap(client.Chats.Create(ctx, string(GEMINI25FLASHPREVIEW0520), config, history))
+	chat := u.Unwrap(client.Chats.Create(ctx, config.Model, AiConfig, history))
 	stream := chat.SendMessageStream(ctx, genai.Part{Text: "How to make a while loop in Go"})
 
 	for chunk := range stream {
@@ -55,8 +85,5 @@ func main() {
 		fmt.Print(part.Text)
 	}
 }
-
-
-
 
 
