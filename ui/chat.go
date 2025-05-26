@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -34,7 +35,16 @@ type ChatModel struct {
 	SenderStyle lipgloss.Style
 	Err         error
 }
-
+type KeyMap struct {
+	PageDown     key.Binding
+	PageUp       key.Binding
+	HalfPageUp   key.Binding
+	HalfPageDown key.Binding
+	Down         key.Binding
+	Up           key.Binding
+	Left         key.Binding
+	Right        key.Binding
+}
 func initialModel() ChatModel {
 	ta := textarea.New()
 	ta.Placeholder = "Ask AI..."
@@ -53,7 +63,30 @@ func initialModel() ChatModel {
 
 	vp := viewport.New(30, 5)
 	vp.SetContent(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render(fmt.Sprintf("Active model: %s", settings.ConfigFile.Model)))
-
+	vp.KeyMap.PageDown = key.NewBinding(
+		key.WithKeys("pgdown"),
+		key.WithHelp("pgdn", "page down"),
+	)
+	vp.KeyMap.PageUp = key.NewBinding(
+		key.WithKeys("pgup"),
+		key.WithHelp("pgup", "page up"),
+	)
+	vp.KeyMap.HalfPageDown = key.NewBinding(
+		key.WithKeys("ctrl+d"),
+		key.WithHelp("ctrl+d", "½ page down"),
+	)
+	vp.KeyMap.HalfPageUp = key.NewBinding(
+		key.WithKeys("ctrl+u"),
+		key.WithHelp("ctrl+u", "½ page up"),
+	)
+	vp.KeyMap.Up = key.NewBinding(
+		key.WithKeys("up"),
+		key.WithHelp("↑", "up"),
+	)
+	vp.KeyMap.Down = key.NewBinding(
+		key.WithKeys("down"),
+		key.WithHelp("↓", "down"),
+	)
 	ta.KeyMap.InsertNewline.SetEnabled(false)
 
 	return ChatModel{
