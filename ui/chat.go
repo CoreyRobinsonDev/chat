@@ -48,6 +48,7 @@ func initialModel() ChatModel {
 
 	sp := spinner.New()
 	sp.Spinner.Frames = []string{""}
+	sp.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("247"))
 
 
 	ta := textarea.New()
@@ -60,8 +61,6 @@ func initialModel() ChatModel {
 	ta.SetWidth(30)
 	ta.SetHeight(3)
 
-	// Remove cursor line styling
-	ta.FocusedStyle.CursorLine = lipgloss.NewStyle()
 
 	ta.ShowLineNumbers = false
 
@@ -139,7 +138,7 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.Viewport.Width = msg.Width
 		m.Textarea.SetWidth(msg.Width)
-		m.Viewport.Height = msg.Height - m.Textarea.Height() - lipgloss.Height(gap)
+		m.Viewport.Height = msg.Height - m.Textarea.Height() - lipgloss.Height("\n")
 
 		if len(m.Messages) > 0 {
 			m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
@@ -148,7 +147,14 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case responseMsg:
 			// to prevent (error) from being rendered
 			// the length of this array must be > whatever spinner was just running
-			m.Spinner.Spinner.Frames = []string{"","","","","","",""}
+			m.Spinner.Spinner.Frames = []string{
+				lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
+				lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
+				lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
+				lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
+				lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
+				lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
+			}
 			m.Messages = append(m.Messages, lipgloss.NewStyle().Foreground(lipgloss.Color("38")).Render("Gemini: ")+<-m.AiResponse)
 			m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
 			m.Viewport.GotoBottom()
@@ -159,7 +165,7 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case tea.KeyEnter:
 			m.Messages = append(m.Messages, m.SenderStyle.Render("You: ")+m.Textarea.Value())
-			m.Spinner.Spinner = spinner.Points
+			m.Spinner.Spinner = spinner.Line
 			m.Input <- m.Textarea.Value()
 			m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
 			m.Textarea.Reset()
@@ -176,9 +182,15 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ChatModel) View() string {
 	return fmt.Sprintf(
-		"%s%s%s\n%s",
+		"%s\n%s%s%s%s%s%s%s%s\n%s",
 		m.Viewport.View(),
-		gap,
+		lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().TopLeft),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("247")).Render(lipgloss.ThickBorder().Top),
 		m.Spinner.View(),
 		m.Textarea.View(),
 	)
