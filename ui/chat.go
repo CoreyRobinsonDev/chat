@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -29,23 +30,24 @@ type (
 )
 
 type ChatModel struct {
+	Input		chan string 
+	Sub 		chan struct{}
+	AiResponse 	chan string
 	Viewport    viewport.Model
+	Spinner		spinner.Model
 	Messages    []string
 	Textarea    textarea.Model
 	SenderStyle lipgloss.Style
 	Err         error
 }
-type KeyMap struct {
-	PageDown     key.Binding
-	PageUp       key.Binding
-	HalfPageUp   key.Binding
-	HalfPageDown key.Binding
-	Down         key.Binding
-	Up           key.Binding
-	Left         key.Binding
-	Right        key.Binding
-}
+
 func initialModel() ChatModel {
+	in := make(chan string)
+	sub := make(chan struct{})
+	res := make(chan string)
+
+	sp := spinner.New()
+	sp.Spinner = spinner.Dot
 	ta := textarea.New()
 	ta.Placeholder = "Ask AI..."
 	ta.Focus()
@@ -90,7 +92,11 @@ func initialModel() ChatModel {
 	ta.KeyMap.InsertNewline.SetEnabled(false)
 
 	return ChatModel{
+		Input: 		 in,
+		Sub:		 sub,
+		AiResponse:  res,
 		Textarea:    ta,
+		Spinner:     sp,
 		Messages:    []string{},
 		Viewport:    vp,
 		SenderStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("5")),
@@ -98,18 +104,34 @@ func initialModel() ChatModel {
 	}
 }
 
+type responseMsg struct {}
+
+func waitForActivity(sub chan struct{}) tea.Cmd {
+	return func() tea.Msg {
+		return responseMsg(<-sub)
+	}
+}
+
 func (m ChatModel) Init() tea.Cmd {
-	return textarea.Blink
+	return tea.Batch(
+		textarea.Blink, 
+		m.Spinner.Tick, 
+		ai.RunGemini(m.Input, m.Sub, m.AiResponse),
+		waitForActivity(m.Sub),
+	)
+		
 }
 
 func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		tiCmd tea.Cmd
 		vpCmd tea.Cmd
+		spCmd tea.Cmd
 	)
 
 	m.Textarea, tiCmd = m.Textarea.Update(msg)
 	m.Viewport, vpCmd = m.Viewport.Update(msg)
+	m.Spinner, spCmd = m.Spinner.Update(msg)
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -121,6 +143,11 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
 		}
 		m.Viewport.GotoBottom()
+	case responseMsg:
+			m.Messages = append(m.Messages, lipgloss.NewStyle().Foreground(lipgloss.Color("38")).Render("Gemini: ")+<-m.AiResponse)
+			m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
+			m.Viewport.GotoBottom()
+		return m, waitForActivity(m.Sub)
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
@@ -128,7 +155,7 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case tea.KeyEnter:
 			m.Messages = append(m.Messages, m.SenderStyle.Render("You: ")+m.Textarea.Value())
-			m.Messages = append(m.Messages, lipgloss.NewStyle().Foreground(lipgloss.Color("38")).Render("Gemini: ")+ai.RunGemini(m.Textarea.Value()))
+			m.Input <- m.Textarea.Value()
 			m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
 			m.Textarea.Reset()
 			m.Viewport.GotoBottom()
@@ -139,14 +166,15 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	return m, tea.Batch(tiCmd, vpCmd)
+	return m, tea.Batch(tiCmd, vpCmd, spCmd)
 }
 
 func (m ChatModel) View() string {
 	return fmt.Sprintf(
-		"%s%s%s",
+		"%s%s%s\n%s",
 		m.Viewport.View(),
 		gap,
+		m.Spinner.View(),
 		m.Textarea.View(),
 	)
 }

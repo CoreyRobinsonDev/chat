@@ -3,13 +3,14 @@ package ai
 import (
 	"context"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
 	"github.com/coreyrobinsondev/search/settings"
 	u "github.com/coreyrobinsondev/utils"
 	"google.golang.org/genai"
 )
 
-func RunGemini(input string) string {
+func RunGemini(input chan string, sub chan struct {}, res chan string) tea.Cmd {
 	if len(settings.ConfigFile.GeminiApiKey) == 0 {
 		settings.Logger.Fatal("Please provide your API key to 'geminiApiKey' in ~/.config/search/search.conf")
 	}
@@ -24,19 +25,25 @@ func RunGemini(input string) string {
 		SystemInstruction: genai.NewContentFromText(
 			"You're a senior software engineer giving short and concise answers. Include code examples", 
 			genai.RoleUser,
-			),
+		),
 	}
 
 
-	chat := u.Unwrap(client.Chats.Create(ctx, settings.ConfigFile.Model, aiConfig, settings.ConfigFile.GeminiChatHistory))
-	result := u.Unwrap(chat.SendMessage(ctx, genai.Part{Text: input}))
 
-	settings.ConfigFile.GeminiChatHistory = append(
-		settings.ConfigFile.GeminiChatHistory,
-		genai.NewContentFromText(input, genai.RoleUser),
-		result.Candidates[0].Content,
-	)
-	settings.ConfigFile.Write()
+	return func() tea.Msg {
+		for {
+			in := <- input
+			chat := u.Unwrap(client.Chats.Create(ctx, settings.ConfigFile.Model, aiConfig, settings.ConfigFile.GeminiChatHistory))
+			result := u.Unwrap(chat.SendMessage(ctx, genai.Part{Text: in}))
 
-	return u.Unwrap(glamour.Render(result.Candidates[0].Content.Parts[0].Text, "dark"))
+			settings.ConfigFile.GeminiChatHistory = append(
+				settings.ConfigFile.GeminiChatHistory,
+				genai.NewContentFromText(in, genai.RoleUser),
+				result.Candidates[0].Content,
+			)
+			settings.ConfigFile.Write()
+			sub <- struct{}{}
+			res <- u.Unwrap(glamour.Render(result.Candidates[0].Content.Parts[0].Text, "dark"))
+		}
+	}
 }
