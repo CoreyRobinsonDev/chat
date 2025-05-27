@@ -47,7 +47,9 @@ func initialModel() ChatModel {
 	res := make(chan string)
 
 	sp := spinner.New()
-	sp.Spinner = spinner.Dot
+	sp.Spinner.Frames = []string{""}
+
+
 	ta := textarea.New()
 	ta.Placeholder = "Ask AI..."
 	ta.Focus()
@@ -144,6 +146,9 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.Viewport.GotoBottom()
 	case responseMsg:
+			// to prevent (error) from being rendered
+			// the length of this array must be > whatever spinner was just running
+			m.Spinner.Spinner.Frames = []string{"","","","","","",""}
 			m.Messages = append(m.Messages, lipgloss.NewStyle().Foreground(lipgloss.Color("38")).Render("Gemini: ")+<-m.AiResponse)
 			m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
 			m.Viewport.GotoBottom()
@@ -151,10 +156,10 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
-			fmt.Println(m.Textarea.Value())
 			return m, tea.Quit
 		case tea.KeyEnter:
 			m.Messages = append(m.Messages, m.SenderStyle.Render("You: ")+m.Textarea.Value())
+			m.Spinner.Spinner = spinner.Points
 			m.Input <- m.Textarea.Value()
 			m.Viewport.SetContent(lipgloss.NewStyle().Width(m.Viewport.Width).Render(strings.Join(m.Messages, "\n")))
 			m.Textarea.Reset()
