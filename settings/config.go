@@ -15,16 +15,24 @@ var ConfigFile Config
 
 type Config struct {
 	Model string `json:"model"`
+	SystemInstruction string `json:"systemInstruction"`
 	GeminiApiKey string `json:"geminiApiKey"`
+	GeminiModels []string `json:"geminiModels"`
 	GeminiChatHistory []*genai.Content `json:"geminiChatHistory"`
 }
 
 func (self *Config) Create() {
-	u.Expect(godotenv.Load())
-	self.Model = "gemini-2.5-flash-preview-05-20" 
+	godotenv.Load()
 	self.GeminiApiKey = os.Getenv("GEMINI_API_KEY")
+	self.GeminiModels = []string{
+		"gemini-2.5-flash-preview-05-20",
+		"gemini-2.0-flash",
+		"gemini-2.0-flash-lite",
+	}
+	self.Model = self.GeminiModels[0] 
+	self.SystemInstruction = "You're a senior software engineer giving short and concise answers. Include code examples"
 
-	bytes := u.Unwrap(json.Marshal(self))
+	bytes := u.Unwrap(json.MarshalIndent(self, "", "\t"))
 	homeDir := u.Unwrap(os.UserHomeDir())
 	configPath := homeDir + "/.config/search"
 
@@ -61,7 +69,7 @@ func (self *Config) Init() {
 
 
 func (self Config) Write() {
-	bytes := u.Unwrap(json.Marshal(self))
+	bytes := u.Unwrap(json.MarshalIndent(self, "", "\t"))
 	homeDir := u.Unwrap(os.UserHomeDir())
 	configPath := homeDir + "/.config/search"
 	configFile := u.Unwrap(os.Create(configPath + "/settings.json"))

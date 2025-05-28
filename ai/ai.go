@@ -11,9 +11,6 @@ import (
 )
 
 func RunGemini(input chan string, sub chan struct {}, res chan string) tea.Cmd {
-	if len(settings.ConfigFile.GeminiApiKey) == 0 {
-		settings.Logger.Fatal("Please provide your API key to 'geminiApiKey' in ~/.config/search/search.conf")
-	}
 
 	ctx := context.Background()
 	client := u.Unwrap(genai.NewClient(ctx, &genai.ClientConfig{
@@ -23,7 +20,7 @@ func RunGemini(input chan string, sub chan struct {}, res chan string) tea.Cmd {
 
 	aiConfig := &genai.GenerateContentConfig{
 		SystemInstruction: genai.NewContentFromText(
-			"You're a senior software engineer giving short and concise answers. Include code examples", 
+			settings.ConfigFile.SystemInstruction, 
 			genai.RoleUser,
 		),
 	}

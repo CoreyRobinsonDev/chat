@@ -13,10 +13,10 @@ import (
 )
 
 func RunList() {
-	items := []list.Item{
-		item(string("gemini-2.5-flash-preview-05-20")),
-		item(string("gemini-2.0-flash")),
-		item(string("gemini-2.0-flash-lite")),
+	items := []list.Item{}
+
+	for _, model := range settings.ConfigFile.GeminiModels {
+		items = append(items, item(model))
 	}
 
 	const defaultWidth = 20

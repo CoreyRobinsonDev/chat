@@ -16,7 +16,9 @@ func main() {
 	})	
 	settings.ConfigFile.Init()
 	settings.ConfigFile.GeminiChatHistory = []*genai.Content{}
-	settings.ConfigFile.Write()
+	if len(settings.ConfigFile.GeminiApiKey) == 0 {
+		settings.Logger.Fatal("Please provide your API key to 'geminiApiKey' in ~/.config/search/settings.json")
+	}
 
 	args := os.Args[1:]
 
