@@ -1,5 +1,6 @@
 # search
 Terminal based AI chat client running on Google Gemini models
+<br>
 [![Release](https://github.com/CoreyRobinsonDev/search/actions/workflows/release.yml/badge.svg)](https://github.com/CoreyRobinsonDev/search/actions/workflows/release.yml)
 
 ![demo](https://vhs.charm.sh/vhs-4nLDenhbKScUPvy58sEDWt.gif)
