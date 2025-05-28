@@ -11,19 +11,13 @@ Terminal based AI chat client running on Google Gemini models
     go build
     ```
 1. Add Gemini API key. This can be done in 2 ways:
-    - Within the project directory create a `.env` file, add `GEMINI_API_KEY=your_api_key`, then run `go build`. This will be added to your settings file at `~/.config/search/settings.json`. This file will be created initial run
+    - Within the project directory create a `.env` file, add `GEMINI_API_KEY=your_api_key`, then run `go build`. This will be added to your settings file at `~/.config/search/settings.json`. `GEMINI_API_KEY` can also be exported as system environment variable
     - Alternitively, you can update the `geminiApiKey` field in your `~/.config/search/settings.json` file directly
 
 ## Commands
 - `config`: Select the AI model to use
-    - Other [Gemini models](https://ai.google.dev/gemini-api/docs/models) can be added to `ui/list`
-    ```go
-	items := []list.Item{
-		item(string("gemini-2.5-flash-preview-05-20")),
-		item(string("gemini-2.0-flash")),
-		item(string("gemini-2.0-flash-lite")),
-	}
-    ```
+    - Other [Gemini models](https://ai.google.dev/gemini-api/docs/models) can be added to `geminiModels` in `~/.config/search/settings.json`
+
 ## License
 [The Unlicense](./LICENSE)
 
