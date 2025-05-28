@@ -10,11 +10,10 @@ import (
 	"google.golang.org/genai"
 )
 
-
 func main() {
-	u.SetErrorHandler(func (err error) {
+	u.SetErrorHandler(func(err error) {
 		settings.Logger.Fatal(err)
-	})	
+	})
 	settings.ConfigFile.Init()
 	settings.ConfigFile.GeminiChatHistory = []*genai.Content{}
 	settings.ConfigFile.Write()
