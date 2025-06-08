@@ -2,7 +2,7 @@
 Terminal based AI chat client running on Google Gemini models
 <br>
 
-![demo](https://vhs.charm.sh/vhs-4nLDenhbKScUPvy58sEDWt.gif)
+![demo](https://vhs.charm.sh/vhs-7rRZg9FkxPBBazN94HFTSW.gif)
 
 ## Installation
 1. Build from source
