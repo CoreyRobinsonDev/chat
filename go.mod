@@ -1,4 +1,4 @@
-module github.com/coreyrobinsondev/search
+module github.com/coreyrobinsondev/chat
 
 go 1.24.3
 

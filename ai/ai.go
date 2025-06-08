@@ -5,7 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
-	"github.com/coreyrobinsondev/search/settings"
+	"github.com/coreyrobinsondev/chat/settings"
 	u "github.com/coreyrobinsondev/utils"
 	"google.golang.org/genai"
 )

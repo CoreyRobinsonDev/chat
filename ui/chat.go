@@ -10,8 +10,8 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/coreyrobinsondev/search/ai"
-	"github.com/coreyrobinsondev/search/settings"
+	"github.com/coreyrobinsondev/chat/ai"
+	"github.com/coreyrobinsondev/chat/settings"
 	u "github.com/coreyrobinsondev/utils"
 )
 

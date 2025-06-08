@@ -34,7 +34,7 @@ func (self *Config) Create() {
 
 	bytes := u.Unwrap(json.MarshalIndent(self, "", "\t"))
 	homeDir := u.Unwrap(os.UserHomeDir())
-	configPath := homeDir + "/.config/search"
+	configPath := homeDir + "/.config/chat"
 
 	err := os.Mkdir(configPath, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
@@ -47,7 +47,7 @@ func (self *Config) Create() {
 
 func (self Config) IsExist() (bool, error) {
 	homeDir := u.Unwrap(os.UserHomeDir())
-	configPath := homeDir + "/.config/search"
+	configPath := homeDir + "/.config/chat"
 
 	_, err := os.Stat(configPath + "/settings.json")
     if err == nil { return true, nil }
@@ -57,7 +57,7 @@ func (self Config) IsExist() (bool, error) {
 
 func (self *Config) Init() {
 	homeDir := u.Unwrap(os.UserHomeDir())
-	configPath := homeDir + "/.config/search"
+	configPath := homeDir + "/.config/chat"
 
 	if u.Unwrap(self.IsExist()) {
 		content := u.Unwrap(os.ReadFile(configPath + "/settings.json"))
@@ -71,7 +71,7 @@ func (self *Config) Init() {
 func (self Config) Write() {
 	bytes := u.Unwrap(json.MarshalIndent(self, "", "\t"))
 	homeDir := u.Unwrap(os.UserHomeDir())
-	configPath := homeDir + "/.config/search"
+	configPath := homeDir + "/.config/chat"
 	configFile := u.Unwrap(os.Create(configPath + "/settings.json"))
 	defer configFile.Close()
 	u.Unwrap(configFile.Write(bytes))
